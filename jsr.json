@@ -1,0 +1,4 @@
+{
+  "name": "@cosmo/ai",
+  "exports": "./src/index.ts"
+}
