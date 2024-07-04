@@ -7,20 +7,19 @@ import zodToJsonSchema from "zod-to-json-schema";
  *
  * @template T - The Zod schema type.
  * @param {T} zod - The Zod schema to validate against.
- * @param {object} example - An example object to validate the schema.
  * @param {string} payload - The payload to be parsed.
  * @param {string} instruction - Additional instructions for the parsing process.
  * @param {object} options - Options object.
  * @param {string} [options.apiKey] - Optional API key for authentication, otherwise COSMO_AI_KEY env var is used
+ * @param {string} [options.model] - Optional model to use, otherwise gpt-4o is used
  * @returns {Promise<z.infer<T>>} - The parsed payload as inferred by the Zod schema.
  * @throws {Error} - Throws an error if API key is missing or if the example is invalid.
  */
 export default async function parse<T extends ZodSchema>(
   zod: T,
-  example: object,
   payload: string,
   instruction: string,
-  options: { apiKey?: string }
+  options: { apiKey?: string; model?: string }
 ): Promise<z.infer<T>> {
   const apiKey =
     options?.apiKey ??
@@ -30,41 +29,20 @@ export default async function parse<T extends ZodSchema>(
 
   const schema = zodToJsonSchema(zod);
 
-  const testExample = zod.safeParse(example);
-
-  if (!testExample.success) throw new Error("Invalid example");
-
-  const response = await axios.post<{
-    data: { parse_test: { parsed: T } };
-  }>(
-    "https://apis.ai.cosmoconsult.com/graphql",
+  const response = await axios.post<z.infer<T>>(
+    "https://apis.ai.cosmoconsult.com/parse",
     {
-      query: `mutation parse($schema: String!, $example: String!, $payload: String!, $instruction: String!) {
-  parse_test(
-    schema: $schema
-    example: $example
-    payload: $payload
-    instruction: $instruction
-  ) {
-    parsed
-    __typename
-  }
-}
-      `,
-      variables: {
-        schema: JSON.stringify(schema),
-        example: JSON.stringify(example),
-        payload,
-        instruction,
-      },
+      model: options?.model ?? "gpt-4o",
+      schema: JSON.stringify(schema),
+      payload,
+      instruction,
     },
     {
       headers: {
-        "Content-Type": "application/json",
         "x-api-key": apiKey,
       },
     }
   );
 
-  return response.data.data.parse_test?.parsed;
+  return response.data;
 }
