@@ -21,9 +21,10 @@ export default async function parse<T extends ZodSchema>(
   instruction: string,
   options: { apiKey?: string; model?: string }
 ): Promise<z.infer<T>> {
-  const apiKey =
-    options?.apiKey ??
-    z.string().startsWith("ai_").parse(process.env.COSMO_AI_KEY);
+  const apiKey = z
+    .string()
+    .startsWith("ai_")
+    .parse(options?.apiKey ?? process.env.COSMO_AI_KEY);
 
   if (!apiKey) throw new Error("Missing COSMO_AI_KEY");
 
