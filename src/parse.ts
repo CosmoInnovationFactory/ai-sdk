@@ -1,6 +1,6 @@
-import { ZodSchema, z } from "zod";
-import axios from "axios";
-import zodToJsonSchema from "zod-to-json-schema";
+import { ZodSchema, z } from "npm:zod@3.23";
+import axios from "npm:axios@1.7";
+import zodToJsonSchema from "npm:zod-to-json-schema@3.23";
 
 /**
  * Parses the provided payload according to the specified Zod schema.
