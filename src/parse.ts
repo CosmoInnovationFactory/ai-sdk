@@ -40,7 +40,7 @@ export default async function parse<T extends ZodSchema>(
     },
     {
       headers: {
-        "x-api-key": apiKey,
+        "api-key": apiKey,
       },
     }
   );
