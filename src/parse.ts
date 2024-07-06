@@ -1,6 +1,8 @@
-import { ZodSchema, z } from "npm:zod@3.23";
+import { ZodSchema, z, infer as Infer } from "npm:zod@3.23";
 import axios from "npm:axios@1.7";
 import zodToJsonSchema from "npm:zod-to-json-schema@3.23";
+
+type ZodInfer<T extends ZodSchema> = Infer<T>;
 
 /**
  * Parses the provided payload according to the specified Zod schema.
@@ -12,7 +14,7 @@ import zodToJsonSchema from "npm:zod-to-json-schema@3.23";
  * @param {object} options - Options object.
  * @param {string} [options.apiKey] - Optional API key for authentication, otherwise COSMO_AI_KEY env var is used
  * @param {string} [options.model] - Optional model to use, otherwise gpt-4o is used
- * @returns {Promise<z.infer<T>>} - The parsed payload as inferred by the Zod schema.
+ * @returns {Promise<ZodInfer<T>>} - The parsed payload as inferred by the Zod schema.
  * @throws {Error} - Throws an error if API key is missing or if the example is invalid.
  */
 export default async function parse<T extends ZodSchema>(
@@ -20,7 +22,7 @@ export default async function parse<T extends ZodSchema>(
   payload: string,
   instruction: string,
   options: { apiKey?: string; model?: string }
-): Promise<z.infer<T>> {
+): Promise<ZodInfer<T>> {
   const apiKey = z
     .string()
     .startsWith("ai_")
