@@ -34,7 +34,7 @@ export default async function parse<T extends ZodSchema>(
     "https://apis.ai.cosmoconsult.com/parse",
     {
       model: options?.model ?? "gpt-4o",
-      schema: JSON.stringify(schema),
+      schema: schema,
       payload,
       instruction,
     },
