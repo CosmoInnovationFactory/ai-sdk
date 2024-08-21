@@ -21,7 +21,8 @@ export default async function parse<T extends ZodSchema>(
   zod: T,
   payload: string,
   instruction: string,
-  options: { apiKey?: string; model?: string }
+  options: { apiKey?: string; model?: string },
+  retryCount = 0
 ): Promise<ZodInfer<T>> {
   const apiKey = z
     .string()
@@ -32,20 +33,30 @@ export default async function parse<T extends ZodSchema>(
 
   const schema = zodToJsonSchema(zod);
 
-  const response = await axios.post<z.infer<T>>(
-    "https://apis.ai.cosmoconsult.com/parse",
-    {
-      model: options?.model ?? "gpt-4o",
-      schema: schema,
-      payload,
-      instruction,
-    },
-    {
-      headers: {
-        "api-key": apiKey,
+  const response = await axios
+    .post<z.infer<T>>(
+      "https://apis.ai.cosmoconsult.com/parse",
+      {
+        model: options?.model ?? "gpt-4o",
+        schema: schema,
+        payload,
+        instruction,
       },
-    }
-  );
+      {
+        headers: {
+          "api-key": apiKey,
+        },
+      }
+    )
+    .catch((error) => {
+      if (error.response?.status === 400) {
+        // TODO remove, once there are structured outputs in the API
+        if (retryCount < 3)
+          return parse(zod, payload, instruction, options, retryCount + 1);
+
+        throw error;
+      }
+    });
 
   return response.data;
 }
